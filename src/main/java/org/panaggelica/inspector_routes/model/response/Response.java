@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Data
 public class Response {
 
-    Map<Integer, Trip> trips;
+    private Map<Integer, Trip> trips;
 
     @SneakyThrows
     public Response(Map<Inspector, OSRMTripResponse> inspectorTrips) {
@@ -26,8 +26,12 @@ public class Response {
                         {
                             Geometry route = null;
                             OSRMTripResponse osrmTripResponse = entry.getValue();
+
                             if (osrmTripResponse.isOk())
                                 route = osrmTripResponse.getTrips().get(0).getParsedGeometry();
+                            else
+                                log.warn("failed to get correct response from OSRM");
+
                             if (route != null) {
                                 log.info("route: {}", route);
                             }

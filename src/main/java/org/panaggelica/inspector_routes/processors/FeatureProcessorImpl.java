@@ -1,13 +1,12 @@
 package org.panaggelica.inspector_routes.processors;
 
 import lombok.extern.slf4j.Slf4j;
+import org.geotools.data.DataUtilities;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterVisitor;
 import org.panaggelica.inspector_routes.model.RoutingOptions;
 import org.panaggelica.inspector_routes.model.oati.Inspector;
 import org.panaggelica.inspector_routes.model.oati.Inspectorate;
@@ -15,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.lang.Boolean.TRUE;
 
 @Component
 @Slf4j
@@ -26,7 +27,13 @@ public class FeatureProcessorImpl implements FeatureProcessor {
 
     private Geometry voronoiDiagram;
     private FeatureCollection thisFeatures;
-    private Map<Inspectorate, FeatureCollection> featured = new HashMap<>();
+    private final Map<Inspectorate, FeatureCollection> featured;
+    private final Map<String, Boolean> routedFeatures;
+
+    public FeatureProcessorImpl() {
+        featured = new HashMap<>();
+        routedFeatures = new HashMap<>();
+    }
 
     @Override
     public void process(FeatureCollection featureCollection, List<Inspectorate> inspectorates, RoutingOptions options) {
@@ -46,31 +53,57 @@ public class FeatureProcessorImpl implements FeatureProcessor {
 
         log.info("voronoi: {}", voronoiDiagram);
 
-        // todo: intersect features with polygons
-        int i = 0;
-        for (Inspectorate inspectorate : inspectorates) {
-            featured.put(inspectorate, featureCollection.subCollection(new Filter() {
-                @Override
-                public boolean evaluate(Object object) {
-                    return false;
-                }
+        HashMap<Inspectorate, Geometry> zones = new HashMap<>();
+        inspectorates.forEach(ins -> {
+            for (int i = 0; i < voronoiDiagram.getNumGeometries(); i++) {
+                Geometry zone = voronoiDiagram.getGeometryN(i);
+                if (zone.contains(ins.getParsedLocation())) {
+                    zones.put(ins, zone);
+                    // вычисляем, какие фичи попадают в заявленные зоны
+                    // todo: проверка на попадание фич в несколько зон
+                    List<SimpleFeature> thisZoneList = new ArrayList<>();
+                    try (FeatureIterator featureIterator = featureCollection.features()) {
+                        while (featureIterator.hasNext()) {
 
-                @Override
-                public Object accept(FilterVisitor visitor, Object extraData) {
-                    return null;
+                            SimpleFeature feature = (SimpleFeature) featureIterator.next();
+                            if (zone.intersects((Geometry) feature.getDefaultGeometry()))
+                                thisZoneList.add(feature);
+                        }
+
+                    }
+                    featured.put(ins, DataUtilities.collection(thisZoneList));
                 }
-            }));
-        }
+            }
+        });
+
+        boolean voronoiCheck = new HashSet<>(zones.values()).size() == zones.keySet().size();
+        log.info("voronoi check " + (voronoiCheck ? "passed" : "failed"));
+
+        log.info("balanced as {}", featured
+                .entrySet().stream().collect(Collectors.toMap(
+                        e -> e.getKey().getId(), e -> e.getValue().size()
+                )));
     }
+
+    private static final int MAX_OBJECTS = 4;
 
     @Override
     public List<Point> getCoords(Inspectorate inspectorate, Inspector inspector, RoutingOptions options) {
         FeatureCollection featureCollection = featured.get(inspectorate);
         List<Point> res = new ArrayList<>();
+        int i = 0;
         try (FeatureIterator featureIterator = featureCollection.features()) {
-            while (featureIterator.hasNext()) {
+            while (featureIterator.hasNext() && i < MAX_OBJECTS) {
+
                 SimpleFeature feature = (SimpleFeature) featureIterator.next();
-                res.addAll(getFeaturePoints(feature, options));
+
+                final String featureID = feature.getID();
+                if (!TRUE.equals(routedFeatures.get(featureID))) {
+                    res.addAll(getFeaturePoints(feature, options));
+                    routedFeatures.put(featureID, true);
+                    i++;
+                }
+
             }
         }
         return res;
@@ -123,10 +156,10 @@ public class FeatureProcessorImpl implements FeatureProcessor {
 
     private List<Point> pointFromP(Polygon polygon) {
 //        log.info("P: {}", polygon);
-
-        return List.of(polygon.getCoordinates())
-                .stream().map(c -> GeometryFactory.createPointFromInternalCoord(c, exemplar))
-                .collect(Collectors.toList());
+        return List.of(polygon.getCentroid());
+//        return List.of(polygon.getCoordinates())
+//                .stream().map(c -> GeometryFactory.createPointFromInternalCoord(c, exemplar))
+//                .collect(Collectors.toList());
 
     }
 
@@ -139,6 +172,5 @@ public class FeatureProcessorImpl implements FeatureProcessor {
         }
         return res;
     }
-
 
 }

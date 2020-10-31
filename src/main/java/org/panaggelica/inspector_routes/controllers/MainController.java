@@ -42,9 +42,6 @@ public class MainController {
         FeatureJSON io = new FeatureJSON();
         FeatureCollection objects = io.readFeatureCollection(objectsJSON);
 
-//        List<Inspectorate> inspectorates =
-//                objectMapper.readValue(inspectoratesJSON, new TypeReference<List<Inspectorate>>() {});
-
         List<Inspectorate> inspectorates =
                 Arrays.asList(objectMapper.readValue(inspectoratesJSON, Inspectorate[].class));
 

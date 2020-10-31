@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.christopherfrantz.dbscan.DBSCANClusteringException;
 import org.geotools.feature.FeatureCollection;
 import org.locationtech.jts.geom.Point;
+import org.panaggelica.inspector_routes.model.PreferredMode;
 import org.panaggelica.inspector_routes.model.RoutingOptions;
 import org.panaggelica.inspector_routes.model.oati.Inspector;
 import org.panaggelica.inspector_routes.model.oati.Inspectorate;
@@ -32,16 +33,20 @@ public class TripProcessorImpl implements TripProcessor {
     @Autowired
     FeatureProcessor featureProcessor;
 
-    @Value("${osrm.server}")
-    String osrmPath;
+    @Value("${osrm.server.car}")
+    String osrmCarPath;
+
+    @Value("${osrm.server.foot}")
+    String osrmFootPath;
 
     ObjectMapper objectMapper = IOUtil.objectMapper;
 
-    WebClient client;
+    WebClient carClient, footClient;
 
     @PostConstruct
     void init() {
-        client = WebClient.create(osrmPath);
+        carClient = WebClient.create(osrmCarPath);
+        footClient = WebClient.create(osrmFootPath);
     }
 
     @Override
@@ -58,6 +63,8 @@ public class TripProcessorImpl implements TripProcessor {
             List<Inspector> inspectors = inspectorate.getInspectors();
             for (Inspector inspector : inspectors) {
 
+                log.info("getting route for {}", inspector);
+
                 List<Point> points = featureProcessor.getCoords(inspectorate, inspector, options);
                 if (points.isEmpty())
                     continue;
@@ -67,7 +74,7 @@ public class TripProcessorImpl implements TripProcessor {
                 log.info("coords: {}", coords);
 
                 // do connection to osrm
-                OSRMTripResponse osrmTripResponse = getOSRMTrip(options, coords);
+                OSRMTripResponse osrmTripResponse = getOSRMTrip(options, coords, inspector.getPreferredMode());
                 responseMap.put(inspector, osrmTripResponse);
             }
         }
@@ -78,11 +85,23 @@ public class TripProcessorImpl implements TripProcessor {
     }
 
     @SneakyThrows
-    private OSRMTripResponse getOSRMTrip(RoutingOptions options, String coords) {
-        String tripURI = buildTripURI(options, coords);
+    private OSRMTripResponse getOSRMTrip(RoutingOptions options, String coords, PreferredMode preferredMode) {
+        String tripURI = buildTripURI(options, coords, preferredMode);
         log.info("tripURI: {}", tripURI);
 
-        String response = client
+        WebClient thisClient;
+        switch (preferredMode) {
+            case CAR:
+                thisClient = carClient;
+                break;
+            case FOOT:
+                thisClient = footClient;
+                break;
+            default:
+                thisClient = carClient;
+        }
+
+        String response = thisClient
                 .get()
                 .uri(URI.create(tripURI))
                 .retrieve()
@@ -96,8 +115,21 @@ public class TripProcessorImpl implements TripProcessor {
         return osrmTripResponse;
     }
 
-    private String buildTripURI(RoutingOptions options, String coords) {
-        String uri = osrmPath + "/trip/v1/driving/" + coords + "?geometries=geojson"; // fixme: use options
+    private String buildTripURI(RoutingOptions options, String coords, PreferredMode mode) {
+        String host;
+        switch (mode) {
+            case CAR:
+                host = osrmCarPath;
+                break;
+            case FOOT:
+                host = osrmFootPath;
+                break;
+            default:
+                host = osrmCarPath;
+        }
+
+        String addFullOverview = "&overview=full";
+        String uri = host + "/trip/v1/driving/" + coords + "?geometries=geojson";
         return uri;
     }
 
