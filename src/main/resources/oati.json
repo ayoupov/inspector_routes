@@ -1,0 +1,378 @@
+{
+  "inspectorates": [
+    {
+      "id": 0,
+      "location": [
+        37.66172508,
+        55.74461696
+      ],
+      "name": "Œ¿“» „.ÃÓÒÍ‚˚",
+      "inspectors": [
+        {
+          "id": 1,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 2,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 3,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 4,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 5,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 6,
+          "preferredMode": "CAR"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "location": [
+        37.66518295,
+        55.71027597
+      ],
+      "name": "¿“» ﬁ¿Œ",
+      "inspectors": [
+        {
+          "id": 11,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 12,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 13,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 14,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 15,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 16,
+          "preferredMode": "CAR"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "location": [
+        37.568866,
+        55.682417
+      ],
+      "name": "¿“» ﬁ«¿Œ",
+      "inspectors": [
+        {
+          "id": 21,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 22,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 23,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 24,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 25,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 26,
+          "preferredMode": "CAR"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "location": [
+        37.76170693,
+        55.70705003
+      ],
+      "name": "¿“» ﬁ¬¿Œ",
+      "inspectors": [
+        {
+          "id": 31,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 32,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 33,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 34,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 35,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 36,
+          "preferredMode": "CAR"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "location": [
+        37.66433906,
+        55.738713
+      ],
+      "name": "¿“» ÷¿Œ",
+      "inspectors": [
+        {
+          "id": 41,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 42,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 43,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 44,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 45,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 46,
+          "preferredMode": "CAR"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "location": [
+        37.40196805,
+        55.84446496
+      ],
+      "name": "¿“» —«¿Œ",
+      "inspectors": [
+        {
+          "id": 51,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 52,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 53,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 54,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 55,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 56,
+          "preferredMode": "CAR"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "location": [
+        37.65024405,
+        55.86601997
+      ],
+      "name": "¿“» —¬¿Œ",
+      "inspectors": [
+        {
+          "id": 61,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 62,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 63,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 64,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 65,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 66,
+          "preferredMode": "CAR"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "location": [
+        37.47066194,
+        55.86200401
+      ],
+      "name": "¿“» —¿Œ",
+      "inspectors": [
+        {
+          "id": 71,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 2,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 73,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 74,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 75,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 76,
+          "preferredMode": "CAR"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "location": [
+        37.21564807,
+        55.99061901
+      ],
+      "name": "¿“» «ÂÎ¿Œ",
+      "inspectors": [
+        {
+          "id": 81,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 82,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 83,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 84,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 85,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 86,
+          "preferredMode": "CAR"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "location": [
+        37.49801595,
+        55.67316904
+      ],
+      "name": "¿“» «¿Œ",
+      "inspectors": [
+        {
+          "id": 91,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 92,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 93,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 94,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 95,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 96,
+          "preferredMode": "CAR"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "location": [
+        37.77287297,
+        55.76013499
+      ],
+      "name": "¿“» ¬¿Œ",
+      "inspectors": [
+        {
+          "id": 101,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 102,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 103,
+          "preferredMode": "FOOT"
+        },
+        {
+          "id": 104,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 105,
+          "preferredMode": "CAR"
+        },
+        {
+          "id": 106,
+          "preferredMode": "CAR"
+        }
+      ]
+    }
+  ]
+}
