@@ -2,22 +2,27 @@ package org.panaggelica.inspector_routes.processors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.christopherfrantz.dbscan.DBSCANClusteringException;
 import org.geotools.feature.FeatureCollection;
 import org.locationtech.jts.geom.Point;
-import org.panaggelica.inspector_routes.model.InspectorTrip;
-import org.panaggelica.inspector_routes.model.oati.Inspectorates;
-import org.panaggelica.inspector_routes.model.osrm.OSRMTripResponse;
 import org.panaggelica.inspector_routes.model.RoutingOptions;
+import org.panaggelica.inspector_routes.model.oati.Inspector;
+import org.panaggelica.inspector_routes.model.oati.Inspectorate;
+import org.panaggelica.inspector_routes.model.osrm.OSRMTripResponse;
+import org.panaggelica.inspector_routes.model.response.Response;
 import org.panaggelica.inspector_routes.util.IOUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import javax.annotation.PostConstruct;
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -32,23 +37,48 @@ public class TripProcessorImpl implements TripProcessor {
 
     ObjectMapper objectMapper = IOUtil.objectMapper;
 
+    WebClient client;
+
+    @PostConstruct
+    void init() {
+        client = WebClient.create(osrmPath);
+    }
+
     @Override
-    public InspectorTrip getTrip(FeatureCollection features, List<Inspectorates> inspectorates, RoutingOptions options) throws JsonProcessingException, DBSCANClusteringException {
+    public Response getTrip(FeatureCollection features, List<Inspectorate> inspectorates, RoutingOptions options) throws JsonProcessingException, DBSCANClusteringException {
         int size = features.size();
         log.info("all features size {} ", size);
 
         // combine `features` in compact batch with `options`
-        List<Point> points = featureProcessor.process(features, options);
+        featureProcessor.process(features, inspectorates, options);
 
-        String coords = points.stream()
-                .map(Point::getCoordinate)
-                .map(c -> c.x + "," + c.y).collect(Collectors.joining(";"));
+        Map<Inspector, OSRMTripResponse> responseMap = new LinkedHashMap<>();
 
-        log.info("coords: {}", coords);
+        for (Inspectorate inspectorate : inspectorates) {
+            List<Inspector> inspectors = inspectorate.getInspectors();
+            for (Inspector inspector : inspectors) {
 
-        // do connection to osrm
+                List<Point> points = featureProcessor.getCoords(inspectorate, inspector, options);
+                if (points.isEmpty())
+                    continue;
+                String coords = points.stream()
+                        .map(Point::getCoordinate)
+                        .map(c -> c.x + "," + c.y).collect(Collectors.joining(";"));
+                log.info("coords: {}", coords);
 
-        WebClient client = WebClient.create(osrmPath);
+                // do connection to osrm
+                OSRMTripResponse osrmTripResponse = getOSRMTrip(options, coords);
+                responseMap.put(inspector, osrmTripResponse);
+            }
+        }
+
+        Response response = new Response(responseMap);
+
+        return response;
+    }
+
+    @SneakyThrows
+    private OSRMTripResponse getOSRMTrip(RoutingOptions options, String coords) {
         String tripURI = buildTripURI(options, coords);
         log.info("tripURI: {}", tripURI);
 
@@ -63,11 +93,7 @@ public class TripProcessorImpl implements TripProcessor {
 
         log.info("response: {}", response);
 
-        // wait
-
-        InspectorTrip trip = new InspectorTrip(osrmTripResponse);
-
-        return trip;
+        return osrmTripResponse;
     }
 
     private String buildTripURI(RoutingOptions options, String coords) {

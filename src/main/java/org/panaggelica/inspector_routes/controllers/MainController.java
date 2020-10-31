@@ -6,9 +6,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geojson.feature.FeatureJSON;
-import org.panaggelica.inspector_routes.model.InspectorTrip;
-import org.panaggelica.inspector_routes.model.oati.Inspectorates;
 import org.panaggelica.inspector_routes.model.RoutingOptions;
+import org.panaggelica.inspector_routes.model.oati.Inspectorate;
+import org.panaggelica.inspector_routes.model.response.Response;
 import org.panaggelica.inspector_routes.processors.TripProcessor;
 import org.panaggelica.inspector_routes.util.IOUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -33,7 +34,7 @@ public class MainController {
 
     @SneakyThrows
     @PostMapping(path = "/trip", produces = MediaType.APPLICATION_JSON_VALUE)
-    public InspectorTrip getTrip(@RequestBody ObjectNode objectNode) throws IOException {
+    public Response getTrip(@RequestBody ObjectNode objectNode) throws IOException {
         String objectsJSON = objectNode.get("objects").toString();
         String inspectoratesJSON = objectNode.get("inspectorates").toString();
         String optionsJSON = objectNode.get("options").toString();
@@ -41,7 +42,11 @@ public class MainController {
         FeatureJSON io = new FeatureJSON();
         FeatureCollection objects = io.readFeatureCollection(objectsJSON);
 
-        List<Inspectorates> inspectorates = objectMapper.readValue(inspectoratesJSON, List.class);
+//        List<Inspectorate> inspectorates =
+//                objectMapper.readValue(inspectoratesJSON, new TypeReference<List<Inspectorate>>() {});
+
+        List<Inspectorate> inspectorates =
+                Arrays.asList(objectMapper.readValue(inspectoratesJSON, Inspectorate[].class));
 
         RoutingOptions options = objectMapper.readValue(optionsJSON, RoutingOptions.class);
 

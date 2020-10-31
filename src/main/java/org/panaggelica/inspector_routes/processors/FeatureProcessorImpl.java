@@ -1,17 +1,19 @@
 package org.panaggelica.inspector_routes.processors;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.locationtech.jts.geom.*;
+import org.locationtech.jts.triangulate.VoronoiDiagramBuilder;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.filter.Filter;
+import org.opengis.filter.FilterVisitor;
 import org.panaggelica.inspector_routes.model.RoutingOptions;
+import org.panaggelica.inspector_routes.model.oati.Inspector;
+import org.panaggelica.inspector_routes.model.oati.Inspectorate;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -22,29 +24,67 @@ public class FeatureProcessorImpl implements FeatureProcessor {
     private static final int FEATURE_THRESHOLD = 4;
     private static final FeatureDistanceMetric distanceMetric = new FeatureDistanceMetric();
 
-    @SneakyThrows
+    private Geometry voronoiDiagram;
+    private FeatureCollection thisFeatures;
+    private Map<Inspectorate, FeatureCollection> featured = new HashMap<>();
+
     @Override
-    public List<Point> process(FeatureCollection features, RoutingOptions options) {
+    public void process(FeatureCollection featureCollection, List<Inspectorate> inspectorates, RoutingOptions options) {
 
-//        PDBSCANClusterer clusterer = new PDBSCANClusterer(features, 4, 0.005, distanceMetric);
-//        ArrayList<SimpleFeature> arr = clusterer.performClustering();
-//
-//        log.info("clustered: {}", arr);
+        thisFeatures = featureCollection;
 
+        VoronoiDiagramBuilder voronoi = new VoronoiDiagramBuilder();
+
+        Collection c = new ArrayList();
+        for (Inspectorate inspectorate : inspectorates) {
+            Point point = inspectorate.getParsedLocation();
+            c.add(point.getCoordinate());
+        }
+
+        voronoi.setSites(c);
+        voronoiDiagram = voronoi.getDiagram(exemplar.getFactory());
+
+        log.info("voronoi: {}", voronoiDiagram);
+
+        // todo: intersect features with polygons
+        int i = 0;
+        for (Inspectorate inspectorate : inspectorates) {
+            featured.put(inspectorate, featureCollection.subCollection(new Filter() {
+                @Override
+                public boolean evaluate(Object object) {
+                    return false;
+                }
+
+                @Override
+                public Object accept(FilterVisitor visitor, Object extraData) {
+                    return null;
+                }
+            }));
+        }
+    }
+
+    @Override
+    public List<Point> getCoords(Inspectorate inspectorate, Inspector inspector, RoutingOptions options) {
+        FeatureCollection featureCollection = featured.get(inspectorate);
         List<Point> res = new ArrayList<>();
-        int featureThreshold = 0;
-
-        try (FeatureIterator iterator = features.features()) {
-            while (iterator.hasNext() && featureThreshold < FEATURE_THRESHOLD) {
-                SimpleFeature feature = (SimpleFeature) iterator.next();
-                res.addAll(getPoints(feature, options));
-                featureThreshold++;
+        try (FeatureIterator featureIterator = featureCollection.features()) {
+            while (featureIterator.hasNext()) {
+                SimpleFeature feature = (SimpleFeature) featureIterator.next();
+                res.addAll(getFeaturePoints(feature, options));
             }
         }
         return res;
     }
 
-    private List<Point> getPoints(SimpleFeature feature, RoutingOptions options) {
+    private Point getFeatureCentroid(SimpleFeature feature) {
+        return ((Geometry) feature.getDefaultGeometry()).getCentroid();
+    }
+
+    private double getFeatureArea(SimpleFeature feature) {
+        return ((Geometry) feature.getDefaultGeometry()).getArea();
+    }
+
+    private List<Point> getFeaturePoints(SimpleFeature feature, RoutingOptions options) {
         Object defaultGeometry = feature.getDefaultGeometry();
         Class geometryClass = defaultGeometry.getClass();
 
